@@ -193,7 +193,7 @@
             border-color: #667eea;
         }
 
-        .start-btn, .submit-btn, .view-leaderboard-btn, .restart-btn {
+        .start-btn, .submit-btn, .view-leaderboard-btn, .restart-btn, .export-btn {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
@@ -206,7 +206,7 @@
             margin-top: 20px;
         }
 
-        .start-btn:hover, .submit-btn:hover, .view-leaderboard-btn:hover, .restart-btn:hover {
+        .start-btn:hover, .submit-btn:hover, .view-leaderboard-btn:hover, .restart-btn:hover, .export-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
         }
@@ -530,7 +530,10 @@
 
                 <div class="screen leaderboard-screen" id="leaderboardScreen">
                     <h2>🏆 Class Leaderboard</h2>
-                    <button class="view-leaderboard-btn" onclick="refreshLeaderboard()" style="margin-bottom: 20px;">Refresh Rankings</button>
+                    <div style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
+                        <button class="view-leaderboard-btn" onclick="refreshLeaderboard()">Refresh Rankings</button>
+                        <button class="export-btn" onclick="exportLeaderboardAsCSV()">📥 Download Results</button>
+                    </div>
                     <table class="leaderboard-table">
                         <thead>
                             <tr>
@@ -794,6 +797,36 @@
                     </tr>
                 `;
             }).join('');
+        }
+
+        function exportLeaderboardAsCSV() {
+            if (Object.keys(allScores).length === 0) {
+                alert('No quiz data to export yet.');
+                return;
+            }
+
+            const sorted = Object.entries(allScores)
+                .sort((a, b) => b[1].score - a[1].score)
+                .map((entry, index) => ({ rank: index + 1, name: entry[0], ...entry[1] }));
+
+            // Build CSV
+            let csv = 'Rank,Student Name,Score (out of 20),Accuracy (%)\n';
+            sorted.forEach(student => {
+                csv += `${student.rank},"${student.name}",${student.score},${student.accuracy}\n`;
+            });
+
+            // Create blob and download
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            
+            link.setAttribute('href', url);
+            link.setAttribute('download', `ELEE212_Quiz_Results_${new Date().toISOString().slice(0, 10)}.csv`);
+            link.style.visibility = 'hidden';
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
 
         function resetQuiz() {
