@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ELEE 212 - Circuits Quiz</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .main-container {
+            width: 100%;
+            max-width: 1000px;
+        }
+
+        .quiz-container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .quiz-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .quiz-title {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .quiz-subtitle {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .back-qr-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .back-qr-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: white;
+        }
+
+        .progress-bar {
+            height: 6px;
+            background: rgba(255, 255, 255, 0.3);
+            margin-top: 15px;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: white;
+            transition: width 0.3s ease;
+        }
+
+        .quiz-content {
+            padding: 40px;
+        }
+
+        .screen {
+            display: none;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        .qr-screen {
+            text-align: center;
+        }
+
+        .qr-screen h2 {
+            font-size: 28px;
+            color: #333;
+            margin-bottom: 30px;
+        }
+
+        .qr-container {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 12px;
+            margin: 20px 0;
+            display: inline-block;
+        }
+
+        #qrcode {
+            display: inline-block;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+        }
+
+        .qr-instructions {
+            font-size: 16px;
+            color: #666;
+            margin: 20px 0;
+            line-height: 1.6;
+        }
+
+        .mode-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+
+        .mode-btn {
+            padding: 12px 30px;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 15px;
+        }
+
+        .mode-btn:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .name-input-screen h2 {
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .name-input-group {
+            margin: 30px 0;
+        }
+
+        .name-input-group label {
+            display: block;
+            font-size: 16px;
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 12px;
+        }
+
+        .name-input-group input {
+            width: 100%;
+            max-width: 400px;
+            padding: 12px 15px;
+            font-size: 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            transition: border-color 0.3s;
+        }
+
+        .name-input-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .start-btn, .submit-btn, .view-leaderboard-btn, .restart-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 20px;
+        }
+
+        .start-btn:hover, .submit-btn:hover, .view-leaderboard-btn:hover, .restart-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .question-number {
+            color: #667eea;
+            font-weight: bold;
+            font-size: 14px;
+            text-transform: uppercase;
+        }
+
+        .question-text {
+            font-size: 22px;
+            font-weight: bold;
+            color: #333;
+            margin: 20px 0;
+        }
+
+        .timer {
+            display: inline-block;
+            font-size: 14px;
+            font-weight: bold;
+            color: #667eea;
+            margin-top: 20px;
+            padding: 10px 20px;
+            background: #f0f3ff;
+            border-radius: 8px;
+        }
+
+        .timer.warning {
+            color: #ff9800;
+            background: #fff3e0;
+        }
+
+        .timer.critical {
+            color: #f44336;
+            background: #ffebee;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .options-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 30px 0;
+        }
+
+        @media (max-width: 600px) {
+            .options-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .option {
+            padding: 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: white;
+            font-size: 15px;
+            font-weight: 500;
+        }
+
+        .option:hover {
+            border-color: #667eea;
+            background: #f0f3ff;
+        }
+
+        .option.selected {
+            border-color: #667eea;
+            background: #667eea;
+            color: white;
+        }
+
+        .option.correct {
+            border-color: #4caf50;
+            background: #4caf50;
+            color: white;
+        }
+
+        .option.incorrect {
+            border-color: #f44336;
+            background: #f44336;
+            color: white;
+        }
+
+        .leaderboard-screen {
+            text-align: center;
+        }
+
+        .leaderboard-screen h2 {
+            font-size: 28px;
+            color: #333;
+            margin-bottom: 30px;
+        }
+
+        .leaderboard-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 30px 0;
+            font-size: 14px;
+        }
+
+        .leaderboard-table thead {
+            background: #667eea;
+            color: white;
+        }
+
+        .leaderboard-table th {
+            padding: 15px;
+            text-align: left;
+            font-weight: bold;
+        }
+
+        .leaderboard-table td {
+            padding: 15px;
+            border-bottom: 1px solid #e0e0e0;
+            text-align: left;
+        }
+
+        .leaderboard-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .rank {
+            font-weight: bold;
+            color: #667eea;
+            font-size: 18px;
+            min-width: 30px;
+        }
+
+        .rank.gold {
+            color: #ffc107;
+        }
+
+        .rank.silver {
+            color: #c0c0c0;
+        }
+
+        .rank.bronze {
+            color: #cd7f32;
+        }
+
+        .student-name {
+            font-weight: 500;
+            color: #333;
+        }
+
+        .score {
+            font-weight: bold;
+            color: #4caf50;
+            font-size: 16px;
+        }
+
+        .accuracy {
+            color: #667eea;
+            font-weight: 500;
+        }
+
+        .end-screen {
+            text-align: center;
+        }
+
+        .end-screen h2 {
+            font-size: 28px;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .final-score {
+            font-size: 48px;
+            font-weight: bold;
+            color: #667eea;
+            margin: 30px 0;
+        }
+
+        .score-message {
+            font-size: 18px;
+            color: #666;
+            margin: 20px 0;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+
+        .error-message {
+            color: #f44336;
+            font-size: 14px;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .info-box {
+            background: #e3f2fd;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 20px 0;
+            text-align: left;
+            color: #333;
+        }
+
+        .copy-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            margin-left: 10px;
+        }
+
+        .copy-btn:hover {
+            background: #764ba2;
+        }
+
+        @media (max-width: 768px) {
+            .quiz-content {
+                padding: 20px;
+            }
+
+            .quiz-title {
+                font-size: 20px;
+            }
+
+            .question-text {
+                font-size: 18px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <div class="quiz-container">
+            <div class="quiz-header" id="quizHeader">
+                <div class="header-top">
+                    <div></div>
+                    <div>
+                        <div class="quiz-title">⚡ ELEE 212</div>
+                        <div class="quiz-subtitle">Circuits for Non-Electrical Students</div>
+                    </div>
+                    <button class="back-qr-btn" id="backQRBtn" onclick="backToQR()" style="display: none;">← Back to QR</button>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+            </div>
+
+            <div class="quiz-content">
+                
+                <div class="screen active qr-screen" id="qrScreen">
+                    <h2>Join the Quiz 📱</h2>
+                    <p style="font-size: 18px; color: #666; margin: 20px 0;">Scan this QR code or use the session code below</p>
+                    
+                    <div class="qr-container">
+                        <div id="qrcode"></div>
+                    </div>
+
+                    <div class="info-box">
+                        <strong>Session Code:</strong> <span id="sessionCode" style="font-weight: bold; color: #667eea;">ELEE212</span>
+                        <button class="copy-btn" onclick="copySessionCode()">Copy</button>
+                    </div>
+
+                    <p class="qr-instructions">
+                        Each student scans the QR code with their phone or device<br>
+                        Enter your name and start answering questions<br>
+                        Compete for the top spot on the leaderboard!
+                    </p>
+
+                    <div class="mode-buttons">
+                        <button class="mode-btn" onclick="switchToStudentMode()">Start as Student</button>
+                        <button class="mode-btn" onclick="switchToLeaderboardMode()">View Leaderboard</button>
+                    </div>
+                </div>
+
+                <div class="screen name-input-screen" id="nameScreen">
+                    <h2>Welcome to the Quiz! 👋</h2>
+                    <div class="name-input-group">
+                        <label for="studentName">Enter your name:</label>
+                        <input type="text" id="studentName" placeholder="Your name" onkeypress="handleNameKeyPress(event)">
+                        <div class="error-message" id="nameError">Please enter your name first</div>
+                    </div>
+                    <button class="submit-btn" onclick="submitName()">Start Quiz</button>
+                </div>
+
+                <div class="screen" id="quizScreen">
+                    <div class="question-number" id="questionNum">Question 1/20</div>
+                    <div class="question-text" id="questionText">Loading...</div>
+                    <div class="timer" id="timer">30s</div>
+                    <div class="options-container" id="optionsContainer"></div>
+                </div>
+
+                <div class="screen end-screen" id="endScreen">
+                    <h2>Quiz Complete! 🎉</h2>
+                    <div class="final-score" id="finalScore">0/20</div>
+                    <div class="score-message" id="scoreMessage">Great effort!</div>
+                    <div class="info-box" style="text-align: center;">
+                        <strong>Your rank will appear on the leaderboard!</strong>
+                    </div>
+                    <div class="button-group">
+                        <button class="view-leaderboard-btn" onclick="showLeaderboard()">View Leaderboard</button>
+                        <button class="restart-btn" onclick="resetQuiz()">Retake Quiz</button>
+                    </div>
+                </div>
+
+                <div class="screen leaderboard-screen" id="leaderboardScreen">
+                    <h2>🏆 Class Leaderboard</h2>
+                    <button class="view-leaderboard-btn" onclick="refreshLeaderboard()" style="margin-bottom: 20px;">Refresh Rankings</button>
+                    <table class="leaderboard-table">
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>Student Name</th>
+                                <th>Score</th>
+                                <th>Accuracy</th>
+                            </tr>
+                        </thead>
+                        <tbody id="leaderboardBody">
+                            <tr>
+                                <td colspan="4" style="text-align: center; padding: 40px; color: #999;">No students have completed the quiz yet. Start the quiz to appear here!</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div class="button-group">
+                        <button class="mode-btn" onclick="switchToStudentMode()">Take Quiz</button>
+                        <button class="mode-btn" onclick="backToQR()">← Back to QR</button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const quizData = [
+            { question: "What does Ohm's Law state?", options: ["V = I/R", "V = I × R", "V = R/I", "I = V² × R"], correct: 1 },
+            { question: "A 10 Ω resistor has 2A of current. What is the voltage?", options: ["5 V", "10 V", "20 V", "40 V"], correct: 2 },
+            { question: "What is Kirchhoff's Current Law (KCL)?", options: ["Voltage around loop = 0", "Current entering = Current leaving", "Power is conserved", "Resistance is constant"], correct: 1 },
+            { question: "R₁ = 5Ω, R₂ = 3Ω, R₃ = 2Ω in series. Total resistance?", options: ["3 Ω", "7 Ω", "10 Ω", "15 Ω"], correct: 2 },
+            { question: "What is Kirchhoff's Voltage Law (KVL)?", options: ["Sum of voltages around loop = 0", "All voltages equal", "Voltage never changes", "Current is constant"], correct: 0 },
+            { question: "For resistors in parallel, which is true?", options: ["Same current through all", "Same voltage across all", "Total R = R₁ + R₂", "All resistors equal"], correct: 1 },
+            { question: "Two 6Ω resistors in parallel. Equivalent resistance?", options: ["3 Ω", "6 Ω", "12 Ω", "1/3 Ω"], correct: 0 },
+            { question: "12V source, 2Ω, 3Ω, 5Ω in series. Current?", options: ["0.5 A", "1 A", "1.2 A", "2 A"], correct: 1 },
+            { question: "Series resistor formula?", options: ["Rₜ = R₁ + R₂ + R₃", "1/Rₜ = 1/R₁ + 1/R₂", "Rₜ = √(R₁ × R₂)", "Rₜ = R₁/R₂"], correct: 0 },
+            { question: "V = 10V, R = 5Ω. Current?", options: ["0.5 A", "1 A", "2 A", "5 A"], correct: 2 },
+            { question: "Which converts Δ to Y?", options: ["Linear transformation", "Δ-Y transformation", "Fourier transform", "Laplace transform"], correct: 1 },
+            { question: "Δ network with 30Ω each. Y-equivalent?", options: ["10 Ω", "15 Ω", "20 Ω", "30 Ω"], correct: 0 },
+            { question: "Increase voltage, constant resistance?", options: ["Current decreases", "Current increases", "Current stays same", "Current negative"], correct: 1 },
+            { question: "Three 4Ω resistors in parallel. Rₜ?", options: ["4/3 Ω", "1.33 Ω", "4 Ω", "12 Ω"], correct: 1 },
+            { question: "At node: I₁ = 2A in, I₂ = 5A in, I₃ = ?", options: ["3 A out", "7 A out", "7 A in", "2.5 A out"], correct: 0 },
+            { question: "What is a 'linear resistor'?", options: ["Straight physically", "V-I is straight line", "Low value", "Pure metal"], correct: 1 },
+            { question: "2Ω and 3Ω in series?", options: ["0.6 Ω", "1.2 Ω", "5 Ω", "6 Ω"], correct: 2 },
+            { question: "Voltage doubles, R constant?", options: ["Halves", "Doubles", "Same", "Zero"], correct: 1 },
+            { question: "KCL and KVL solve?", options: ["Only 1", "Multiple unknowns", "No unknowns", "Infinite"], correct: 1 },
+            { question: "Reciprocal of resistance?", options: ["Reactance", "Conductance", "Impedance", "Admittance"], correct: 1 }
+        ];
+
+        let currentStudent = null;
+        let currentQuestion = 0;
+        let score = 0;
+        let timeLeft = 30;
+        let timerInterval = null;
+        let answered = false;
+        let allScores = JSON.parse(localStorage.getItem('elee212_scores')) || {};
+
+        function generateQRCode() {
+            const qrcodeContainer = document.getElementById('qrcode');
+            qrcodeContainer.innerHTML = '';
+            const currentURL = window.location.href.split('?')[0].split('#')[0];
+            new QRCode(qrcodeContainer, {
+                text: currentURL,
+                width: 250,
+                height: 250,
+                colorDark: '#667eea',
+                colorLight: '#ffffff'
+            });
+        }
+
+        function copySessionCode() {
+            const code = 'ELEE212';
+            navigator.clipboard.writeText(code).then(() => {
+                alert('Session code copied: ' + code);
+            });
+        }
+
+        function switchToStudentMode() {
+            document.getElementById('qrScreen').classList.remove('active');
+            document.getElementById('nameScreen').classList.add('active');
+            document.getElementById('backQRBtn').style.display = 'block';
+        }
+
+        function switchToLeaderboardMode() {
+            showLeaderboard();
+        }
+
+        function backToQR() {
+            document.getElementById('qrScreen').classList.add('active');
+            document.getElementById('nameScreen').classList.remove('active');
+            document.getElementById('quizScreen').classList.remove('active');
+            document.getElementById('endScreen').classList.remove('active');
+            document.getElementById('leaderboardScreen').classList.remove('active');
+            document.getElementById('backQRBtn').style.display = 'none';
+        }
+
+        function handleNameKeyPress(event) {
+            if (event.key === 'Enter') {
+                submitName();
+            }
+        }
+
+        function submitName() {
+            const nameInput = document.getElementById('studentName');
+            const errorMsg = document.getElementById('nameError');
+            
+            if (!nameInput.value.trim()) {
+                errorMsg.classList.add('show');
+                return;
+            }
+            
+            errorMsg.classList.remove('show');
+            currentStudent = nameInput.value.trim();
+            
+            document.getElementById('nameScreen').classList.remove('active');
+            document.getElementById('quizScreen').classList.add('active');
+            
+            currentQuestion = 0;
+            score = 0;
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            answered = false;
+            timeLeft = 30;
+            
+            const question = quizData[currentQuestion];
+            document.getElementById('questionNum').textContent = `Question ${currentQuestion + 1}/20`;
+            document.getElementById('questionText').textContent = question.question;
+            
+            const optionsContainer = document.getElementById('optionsContainer');
+            optionsContainer.innerHTML = '';
+            
+            question.options.forEach((option, index) => {
+                const optionDiv = document.createElement('div');
+                optionDiv.className = 'option';
+                optionDiv.textContent = option;
+                optionDiv.onclick = () => selectOption(index);
+                optionsContainer.appendChild(optionDiv);
+            });
+            
+            updateProgressBar();
+            startTimer();
+        }
+
+        function selectOption(index) {
+            if (answered) return;
+            answered = true;
+            
+            const question = quizData[currentQuestion];
+            const options = document.querySelectorAll('.option');
+            
+            options[index].classList.add(index === question.correct ? 'correct' : 'incorrect');
+            
+            if (index === question.correct) {
+                score++;
+            }
+            
+            if (index !== question.correct) {
+                options[question.correct].classList.add('correct');
+            }
+            
+            clearInterval(timerInterval);
+            setTimeout(nextQuestion, 1500);
+        }
+
+        function startTimer() {
+            clearInterval(timerInterval);
+            updateTimer();
+            timerInterval = setInterval(updateTimer, 1000);
+        }
+
+        function updateTimer() {
+            const timerEl = document.getElementById('timer');
+            timerEl.textContent = `${timeLeft}s`;
+            timerEl.classList.remove('warning', 'critical');
+            
+            if (timeLeft <= 10) timerEl.classList.add('warning');
+            if (timeLeft <= 5) {
+                timerEl.classList.remove('warning');
+                timerEl.classList.add('critical');
+            }
+            
+            timeLeft--;
+            
+            if (timeLeft < 0 && !answered) {
+                answered = true;
+                nextQuestion();
+            }
+        }
+
+        function updateProgressBar() {
+            const progress = ((currentQuestion + 1) / 20) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+        }
+
+        function nextQuestion() {
+            currentQuestion++;
+            if (currentQuestion < 20) {
+                loadQuestion();
+            } else {
+                endQuiz();
+            }
+        }
+
+        function endQuiz() {
+            clearInterval(timerInterval);
+            
+            const accuracy = Math.round((score / 20) * 100);
+            allScores[currentStudent] = { score: score, accuracy: accuracy, timestamp: Date.now() };
+            localStorage.setItem('elee212_scores', JSON.stringify(allScores));
+            
+            document.getElementById('quizScreen').classList.remove('active');
+            document.getElementById('endScreen').classList.add('active');
+            
+            document.getElementById('finalScore').textContent = `${score}/20`;
+            
+            let message = '';
+            if (accuracy >= 90) message = '🌟 Outstanding! You\'ve mastered these concepts!';
+            else if (accuracy >= 75) message = '🎯 Great job! You understand the material well!';
+            else if (accuracy >= 60) message = '📚 Good effort! Review concepts and try again.';
+            else message = '💪 Keep practicing! Review Chapter 1.';
+            
+            document.getElementById('scoreMessage').textContent = message;
+        }
+
+        function showLeaderboard() {
+            document.getElementById('endScreen').classList.remove('active');
+            document.getElementById('quizScreen').classList.remove('active');
+            document.getElementById('nameScreen').classList.remove('active');
+            document.getElementById('qrScreen').classList.remove('active');
+            document.getElementById('leaderboardScreen').classList.add('active');
+            
+            refreshLeaderboard();
+        }
+
+        function refreshLeaderboard() {
+            const leaderboardBody = document.getElementById('leaderboardBody');
+            
+            if (Object.keys(allScores).length === 0) {
+                leaderboardBody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 40px; color: #999;">No students have completed the quiz yet.</td></tr>';
+                return;
+            }
+            
+            const sorted = Object.entries(allScores)
+                .sort((a, b) => b[1].score - a[1].score)
+                .map((entry, index) => ({ rank: index + 1, name: entry[0], ...entry[1] }));
+            
+            leaderboardBody.innerHTML = sorted.map((student, idx) => {
+                let rankClass = '';
+                if (idx === 0) rankClass = 'gold';
+                else if (idx === 1) rankClass = 'silver';
+                else if (idx === 2) rankClass = 'bronze';
+                
+                return `
+                    <tr>
+                        <td><span class="rank ${rankClass}">🏆 ${student.rank}</span></td>
+                        <td><span class="student-name">${student.name}</span></td>
+                        <td><span class="score">${student.score}/20</span></td>
+                        <td><span class="accuracy">${student.accuracy}%</span></td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function resetQuiz() {
+            currentStudent = null;
+            currentQuestion = 0;
+            score = 0;
+            document.getElementById('studentName').value = '';
+            document.getElementById('endScreen').classList.remove('active');
+            document.getElementById('nameScreen').classList.add('active');
+        }
+
+        // Initialize on page load
+        window.addEventListener('load', function() {
+            generateQRCode();
+        });
+    </script>
+</body>
+</html>
